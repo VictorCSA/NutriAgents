@@ -1,0 +1,186 @@
+[
+    {
+        "id": "fenacelbra",
+        "title": "10 Passos para Alimentação do Celíaco",
+        "filename": "10_passos_para_alimentação_do_celíaco.pdf",
+        "url": "https://www.fenacelbra.com.br/10-passos-na-alimentacao-do-celiaco",
+        "publisher": "FENACELBRA",
+        "year": 2021,
+        "accessed": "2026-03-10",
+        "pages_used": "all",
+        "language": "pt-BR",
+        "topics": [
+            "doença celíaca",
+            "alimentação sem glúten",
+            "contaminação cruzada"
+        ]
+    },
+    {
+        "id": "diabetes_mellitus",
+        "title": "Diabetes Mellitus",
+        "filename": "diabetes_mellitus_cab16.pdf",
+        "url": "https://bvsms.saude.gov.br/bvs/publicacoes/diabetes_mellitus_cab16.pdf",
+        "publisher": "Ministério da Saúde",
+        "year": 2006,
+        "accessed": "2026-03-10",
+        "pages_used": "all",
+        "language": "pt-BR",
+        "topics": [
+            "diabetes mellitus",
+            "nutrição",
+            "tratamento"
+        ]
+    },
+    {
+        "id": "guia_alimentar",
+        "title": "Guia Alimentar para a População Brasileira",
+        "filename": "guia_alimentar_populacao_brasileira_2ed.pdf",
+        "url": "https://bvsms.saude.gov.br/bvs/publicacoes/guia_alimentar_populacao_brasileira_2ed.pdf",
+        "publisher": "Ministério da Saúde",
+        "year": 2014,
+        "accessed": "2026-03-10",
+        "pages_used": "all",
+        "language": "pt-BR",
+        "topics": [
+            "nutrição",
+            "alimentação saudável",
+            "prevenção"
+        ]
+    },
+    {
+        "id": "hipertensão_arterial",
+        "title": "Orientação nutricional para controle e prevenção da Hipertensão Arterial Sistêmica",
+        "filename": "Orientação nutricional para controle e prevenção da Hipertensão Arterial Sistêmica.pdf",
+        "url": "https://www.gov.br/saude/pt-br/composicao/saps/ecv/publicacoes/orientacao-nutricional-para-controle-e-prevencao-da-hipertensao-arterial-sistemica/@@download/file/Orienta%C3%A7%C3%A3o%20nutricional%20para%20controle%20e%20preven%C3%A7%C3%A3o%20da%20Hipertens%C3%A3o%20Arterial%20Sist%C3%AAmica.pdf",
+        "publisher": "Ministério da Saúde",
+        "year": null,
+        "accessed": "2026-03-10",
+        "pages_used": "all",
+        "language": "pt-BR",
+        "topics": [
+            "hipertensão",
+            "nutrição",
+            "controle"
+        ]
+    },
+    {
+        "id": "rotulagem_de_alergenicos",
+        "title": "Rotulagem de Alergenicos",
+        "filename": "rotulagem-de-alergenicos.pdf",
+        "url": "https://www.gov.br/anvisa/pt-br/centraisdeconteudo/publicacoes/alimentos/perguntas-e-respostas-arquivos/rotulagem-de-alergenicos.pdf",
+        "publisher": "Ministério da Saúde",
+        "year": 2024,
+        "accessed": "2026-03-10",
+        "pages_used": "all",
+        "language": "pt-BR",
+        "topics": [
+            "alergias",
+            "nutrição",
+            "prevenção"
+        ]
+    },
+    {
+        "id": "tabela_de_alimentos",
+        "title": "Tabela de alimentos",
+        "filename": "Tabela de alimentos - FENACELBRA.pdf",
+        "url": "https://www.fenacelbra.com.br/_files/ugd/971032_ce908c5b49d24d61bce20bb93d12e9a5.pdf",
+        "publisher": "FENACELBRA",
+        "year": 2021,
+        "accessed": "2026-03-10",
+        "pages_used": "all",
+        "language": "pt-BR",
+        "topics": [
+            "doença celíaca",
+            "nutrição",
+            "tabela de alimentos"
+        ]
+    },
+    {
+        "id": "taco_4_edicao_ampliada_e_revisada",
+        "title": "Taco 4 edição ampliada e revisada",
+        "filename": "taco_4_edicao_ampliada_e_revisada.pdf",
+        "url": "https://cfn.org.br/wp-content/uploads/2017/03/taco_4_edicao_ampliada_e_revisada.pdf",
+        "publisher": "Conselho Federal de Nutricionistas",
+        "year": 2017,
+        "accessed": "2026-03-10",
+        "pages_used": "all",
+        "language": "pt-BR",
+        "topics": [
+            "nutrição",
+            "tabela de alimentos"
+        ]
+    },
+    {
+        "id": "terapia_nutricional_no_diabetes_tipo_1",
+        "title": "Terapia nutricional no diabetes tipo 1 – Diretriz da Sociedade Brasileira de Diabetes – Ed. 2025",
+        "filename": "Terapia nutricional no diabetes tipo 1 – Diretriz da Sociedade Brasileira de Diabetes – Ed. 2025.pdf",
+        "url": "https://diretriz.diabetes.org.br/terapia-nutricional-no-diabetes-tipo-1/",
+        "publisher": "Sociedade Brasileira de Diabetes",
+        "year": 2024,
+        "accessed": "2026-03-10",
+        "pages_used": "all",
+        "language": "pt-BR",
+        "topics": [
+            "diabetes tipo 1",
+            "nutrição"
+        ]
+    },
+    {
+        "id": "terapia_nutricional_no_pre_diabetes_e_no_diabetes_mellitus_tipo_2",
+        "title": "Terapia nutricional no pré-diabetes e no diabetes mellitus tipo 2 – Diretriz da Sociedade Brasileira de Diabetes – Ed. 2025",
+        "filename": "Terapia nutricional no pré-diabetes e no diabetes mellitus tipo 2 – Diretriz da Sociedade Brasileira de Diabetes – Ed. 2025.pdf",
+        "url": "https://diretriz.diabetes.org.br/terapia-nutricional-no-pre-diabetes-e-no-diabetes-mellitus-tipo-2/",
+        "publisher": "Sociedade Brasileira de Diabetes",
+        "year": 2022,
+        "accessed": "2026-03-10",
+        "pages_used": "all",
+        "language": "pt-BR",
+        "topics": [
+            "diabetes tipo 2",
+            "nutrição",
+            "pré-diabetes"
+        ]
+    },
+    {
+        "id": "tabela_brasileira_de_alimentos",
+        "title": "Tabela Brasileira de Alimentos",
+        "filename": "alimentos.csv",
+        "url": "https://github.com/machine-learning-mocha/taco/tree/main",
+        "publisher": "UNICAMP",
+        "year": 2021,
+        "accessed": "2026-03-10",
+        "pages_used": "all",
+        "language": "pt-BR",
+        "topics": [
+            "nutrição"
+        ]
+    },
+    {
+        "id": "tabela_brasileira_de_alimentos",
+        "title": "Tabela Brasileira de Alimentos",
+        "filename": "acidos-graxos.csv",
+        "url": "https://github.com/machine-learning-mocha/taco/tree/main",
+        "publisher": "UNICAMP",
+        "year": 2021,
+        "accessed": "2026-03-10",
+        "pages_used": "all",
+        "language": "pt-BR",
+        "topics": [
+            "nutrição"
+        ]
+    },
+    {
+        "id": "tabela_brasileira_de_alimentos",
+        "title": "Tabela Brasileira de Alimentos",
+        "filename": "aminoacidos.csv",
+        "url": "https://github.com/machine-learning-mocha/taco/tree/main",
+        "publisher": "UNICAMP",
+        "year": 2021,
+        "accessed": "2026-03-10",
+        "pages_used": "all",
+        "language": "pt-BR",
+        "topics": [
+            "nutrição"
+        ]
+    }
+]
