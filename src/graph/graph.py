@@ -6,11 +6,11 @@ from typing import Any, Literal
 from langgraph.graph import StateGraph, END
 from typing_extensions import TypedDict
 
-from supervisor import classify
-from retriever import retrieve
-from answerer import answer
-from self_check import self_check
-from safety import check as safety_check
+from agents.supervisor import classify
+from agents.retriever import retrieve
+from agents.answerer import answer
+from agents.self_check import self_check
+from agents.safety import check as safety_check
 
 # Logging
 
