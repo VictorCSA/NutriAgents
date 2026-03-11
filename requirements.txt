@@ -6,3 +6,5 @@ langchain-huggingface
 sentence-transformers
 langchain-ollama
 langgraph
+streamlit==1.55.0
+tornado==6.4
