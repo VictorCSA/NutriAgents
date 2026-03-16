@@ -1,4 +1,5 @@
 data/processed/
 data/logs/
 src/agents/__pycache__/
-src/graph/__pycache__
+src/graph/__pycache__/
+mcp-opennutrition/node_modules/

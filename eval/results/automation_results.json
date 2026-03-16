@@ -1,0 +1,135 @@
+{
+  "summary": {
+    "n_tasks": 5,
+    "n_success": 4,
+    "success_rate": 0.8,
+    "avg_elapsed_s": 108.37,
+    "avg_steps": 14.0,
+    "avg_variation_rate": 1.0,
+    "avg_mcp_foods": 14.4
+  },
+  "results": [
+    {
+      "id": "auto_01",
+      "description": "Plano 7 dias celíaco simples",
+      "input": "Gere um plano alimentar de 7 dias para celíaco",
+      "success": false,
+      "status": "ok",
+      "elapsed_s": 123.08,
+      "n_steps_estimated": 14,
+      "days_present": 7,
+      "meals_present": 4,
+      "variation_rate": 1.0,
+      "unique_meal_rows": 24,
+      "total_meal_rows": 24,
+      "restrictions_detected": [
+        "celíaco"
+      ],
+      "restrictions_correct": true,
+      "mcp_foods_count": 15,
+      "rag_chunks_count": 5,
+      "contains_required_keywords": true,
+      "contains_forbidden_keywords": true,
+      "draft_length": 11519,
+      "draft_preview": "1. # 🥗 Plano Alimentar Semanal — Celíaco\n2. ## Como usar este plano\n- Leia o plano com atenção para identificar alimentos permitidos e evitados.\n- Use como guia principal, adaptando conforme necessidade e preferências pessoais.\n\n---\n\n### Dia 1 — Segunda-feira\n\n#### ☀️ Café da manhã\n**Opção sugerida:"
+    },
+    {
+      "id": "auto_02",
+      "description": "Cardápio semanal diabético",
+      "input": "Crie um cardápio semanal para diabético tipo 2",
+      "success": true,
+      "status": "ok",
+      "elapsed_s": 97.85,
+      "n_steps_estimated": 14,
+      "days_present": 7,
+      "meals_present": 4,
+      "variation_rate": 1.0,
+      "unique_meal_rows": 28,
+      "total_meal_rows": 28,
+      "restrictions_detected": [
+        "diabético"
+      ],
+      "restrictions_correct": true,
+      "mcp_foods_count": 14,
+      "rag_chunks_count": 5,
+      "contains_required_keywords": true,
+      "contains_forbidden_keywords": false,
+      "draft_length": 9521,
+      "draft_preview": "# 🥗 Plano Alimentar Semanal — Diabético Tipo 2\n\n## Como usar este plano\n- Considere ajustar as porções conforme a sua necessidade de calorias diária.\n- Priorize alimentos ricos em fibras e baixos em açúcares para manter os níveis de açúcar no sangue estáveis.\n\n---\n\nEste plano alimentar é uma orienta"
+    },
+    {
+      "id": "auto_03",
+      "description": "Plano com múltiplas restrições",
+      "input": "Monte um plano alimentar para celíaco com hipertensão",
+      "success": true,
+      "status": "ok",
+      "elapsed_s": 111.41,
+      "n_steps_estimated": 14,
+      "days_present": 7,
+      "meals_present": 4,
+      "variation_rate": 1.0,
+      "unique_meal_rows": 20,
+      "total_meal_rows": 20,
+      "restrictions_detected": [
+        "celíaco",
+        "hipertenso"
+      ],
+      "restrictions_correct": true,
+      "mcp_foods_count": 14,
+      "rag_chunks_count": 5,
+      "contains_required_keywords": true,
+      "contains_forbidden_keywords": false,
+      "draft_length": 11688,
+      "draft_preview": "1. # 🥗 Plano Alimentar Semanal — Celíaco e Hipertenso\n2. ## Como usar este plano: \n- Leia atentamente as instruções e ingredientes antes de preparar suas refeições.\n- Certifique-se de verificar a lista de ingredientes para evitar qualquer alimento que possa contener glúten.\n\n---\n\n### Dia 1 — Segunda"
+    },
+    {
+      "id": "auto_04",
+      "description": "Dieta sem lactose vegetariana",
+      "input": "Elabore uma dieta semanal sem lactose e vegetariana",
+      "success": true,
+      "status": "ok",
+      "elapsed_s": 115.86,
+      "n_steps_estimated": 14,
+      "days_present": 7,
+      "meals_present": 4,
+      "variation_rate": 1.0,
+      "unique_meal_rows": 20,
+      "total_meal_rows": 20,
+      "restrictions_detected": [
+        "sem_lactose",
+        "vegetariano"
+      ],
+      "restrictions_correct": true,
+      "mcp_foods_count": 15,
+      "rag_chunks_count": 5,
+      "contains_required_keywords": true,
+      "contains_forbidden_keywords": false,
+      "draft_length": 11848,
+      "draft_preview": "1. # 🥗 Plano Alimentar Semanal — Sem Lactose e Vegetariano\n2. ## Como usar este plano\n- Leia atentamente a lista de alimentos diários para não se esquecer de nada.\n- Use a lista de compras para organizar suas compras semanalmente.\n\n---\n\n### Dia 1 — Segunda-feira\n\n#### ☀️ Café da manhã\n**Opção sugeri"
+    },
+    {
+      "id": "auto_05",
+      "description": "Plano hipertenso baixo sódio",
+      "input": "Faça um plano alimentar para hipertenso com baixo sódio",
+      "success": true,
+      "status": "ok",
+      "elapsed_s": 93.64,
+      "n_steps_estimated": 14,
+      "days_present": 7,
+      "meals_present": 4,
+      "variation_rate": 1.0,
+      "unique_meal_rows": 28,
+      "total_meal_rows": 28,
+      "restrictions_detected": [
+        "hipertenso"
+      ],
+      "restrictions_correct": true,
+      "mcp_foods_count": 14,
+      "rag_chunks_count": 5,
+      "contains_required_keywords": true,
+      "contains_forbidden_keywords": false,
+      "draft_length": 9318,
+      "draft_preview": "1. # 🥗 Plano Alimentar Semanal — Hipertenso\n2. ## Como usar este plano\n- Leia as regras de sódio antes de cada refeição.\n- Use o plano como um guia geral, ajustando conforme necessário para seu estilo de vida.\n\n---\n\n### Dia 1 — Segunda-feira\n\n| Refeição | Opção sugerida | Observação |\n|----------|--"
+    }
+  ]
+}
