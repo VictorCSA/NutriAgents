@@ -8,3 +8,5 @@ langchain-ollama
 langgraph
 streamlit==1.55.0
 tornado==6.4
+langchain-mcp-adapters
+nest_asyncio

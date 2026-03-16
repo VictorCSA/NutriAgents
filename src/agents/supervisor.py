@@ -95,12 +95,22 @@ def parse_intent(raw: str) -> tuple[str, str]:
         line = line.strip()
         if line.upper().startswith("INTENT:"):
             candidate = line.split(":", 1)[1].strip().lower()
-            # Remove pontuação residual
             candidate = re.sub(r"[^\w]", "", candidate)
             if candidate in VALID_INTENTS:
                 intent = candidate
         elif line.upper().startswith("MOTIVO:"):
             motivo = line.split(":", 1)[1].strip()
+        # LLM pulou o prefixo "INTENT:" e respondeu só o valor na primeira linha
+        elif intent is None and line.lower() in VALID_INTENTS:
+            intent = line.lower()
+
+    # Último recurso: procura qualquer palavra válida em qualquer lugar do raw
+    if intent is None:
+        for candidate in VALID_INTENTS:
+            if re.search(rf"\b{candidate}\b", raw, re.IGNORECASE):
+                intent = candidate
+                logger.info(f"Intent extraído por busca no texto: '{intent}'")
+                break
 
     if intent is None:
         logger.warning(

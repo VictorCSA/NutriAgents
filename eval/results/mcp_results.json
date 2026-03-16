@@ -1,0 +1,217 @@
+{
+  "summary": {
+    "server_available": true,
+    "allowed_tools": [
+      "barcode-lookup",
+      "browse-foods",
+      "get-food-by-id",
+      "search-food-by-name"
+    ],
+    "tests_total": 6,
+    "tests_passed": 6,
+    "tests_failed": 0,
+    "audit_log_entries": 479,
+    "mcp_server_path": "C:\\Users\\victo\\OneDrive\\Documentos\\Faculdade\\NutriAgents\\NutriAgents\\mcp-opennutrition\\build\\index.js",
+    "security_controls": {
+      "allowlist": "Apenas 4 tools permitidas: search-food-by-name, get-food-by-id, browse-foods, barcode-lookup",
+      "id_validation": "IDs devem começar com 'fd_' — lc_... rejeitados antes da chamada",
+      "audit_log": "Todas as chamadas registradas em C:\\Users\\victo\\OneDrive\\Documentos\\Faculdade\\NutriAgents\\NutriAgents\\logs\\mcp_calls.jsonl",
+      "no_file_access": "Servidor não tem acesso ao sistema de arquivos do projeto",
+      "no_network": "Servidor roda offline — sem chamadas externas após instalação",
+      "forbidden": "Não pode: ler arquivos, executar shell, fazer HTTP, modificar banco de dados"
+    }
+  },
+  "results": [
+    {
+      "test": "server_path_exists",
+      "passed": true,
+      "detail": "C:\\Users\\victo\\OneDrive\\Documentos\\Faculdade\\NutriAgents\\NutriAgents\\mcp-opennutrition\\build\\index.js"
+    },
+    {
+      "test": "search_food_by_name",
+      "passed": true,
+      "elapsed_s": 1.7,
+      "n_results": 5,
+      "sample": {
+        "id": "fd_2dObzdqa6o2J",
+        "name": "Chicken Breast, Boneless Skinless, Cooked",
+        "type": "everyday",
+        "ean_13": "",
+        "labels": [
+          "cooked"
+        ],
+        "nutrition_100g": {
+          "iron": 0.45,
+          "zinc": 0.9,
+          "water": 66.1,
+          "biotin": 0,
+          "copper": 0.042,
+          "iodine": 0,
+          "lysine": 3.083,
+          "niacin": 12.133,
+          "serine": 1.222,
+          "sodium": 52,
+          "valine": 1.581,
+          "alanine": 1.783,
+          "calcium": 5,
+          "choline": 111,
+          "cystine": 0.32,
+          "glycine": 1.352,
+          "leucine": 2.527,
+          "omega_3": 0.047,
+          "omega_6": 0.705,
+          "omega_9": 1.098,
+          "proline": 1.019,
+          "protein": 30.54,
+          "taurine": 0,
+          "thiamin": 0.107,
+          "xylitol": 0,
+          "arginine": 2.065,
+          "caffeine": 0,
+          "calories": 151,
+          "chlorine": 0,
+          "chromium": 0,
+          "cysteine": 0,
+          "selenium": 28.4,
+          "sorbitol": 0,
+          "tyrosine": 1.1,
+          "histidine": 1.138,
+          "magnesium": 34,
+          "manganese": 0.012,
+          "potassium": 391,
+          "threonine": 1.37,
+          "total_fat": 3.17,
+          "vitamin_a": 10,
+          "vitamin_c": 0,
+          "vitamin_d": 1,
+          "vitamin_e": 0.54,
+          "vitamin_k": 4.3,
+          "folate_dfe": 4,
+          "isoleucine": 1.498,
+          "methionine": 0.794,
+          "molybdenum": 0,
+          "oleic_acid": 1.08,
+          "phosphorus": 258,
+          "riboflavin": 0.213,
+          "trans_fats": 0.01,
+          "tryptophan": 0.385,
+          "vitamin_b6": 1.157,
+          "capric_acid": 0.014,
+          "cholesterol": 104,
+          "erucic_acid": 0,
+          "lauric_acid": 0.005,
+          "vitamin_b12": 0.21,
+          "added_sugars": 0,
+          "stearic_acid": 0.236,
+          "total_sugars": 0,
+          "aspartic_acid": 2.872,
+          "caprylic_acid": 0,
+          "carbohydrates": 0,
+          "dietary_fiber": 0,
+          "ethyl_alcohol": 0,
+          "glutamic_acid": 4.524,
+          "linoleic_acid": 0.599,
+          "myristic_acid": 0.019,
+          "palmitic_acid": 0.704,
+          "phenylalanine": 1.233,
+          "soluble_fiber": 0,
+          "linolenic_acid": 0,
+          "saturated_fats": 0.992,
+          "sugar_alcohols": 0,
+          "eicosenoic_acid": 0.018,
+          "insoluble_fiber": 0,
+          "arachidonic_acid": 0.085,
+          "pantothenic_acid": 1.71,
+          "other_carbohydrates": 0,
+          "alpha_linolenic_acid": 0.026,
+          "docosahexaenoic_acid": 0.007,
+          "gamma_linolenic_acid": 0,
+          "monounsaturated_fats": 1.212,
+          "polyunsaturated_fats": 0.764,
+          "docosapentaenoic_acid": 0.01,
+          "eicosapentaenoic_acid": 0.004,
+          "dihomo_gamma_linolenic_acid": 0.021
+        },
+        "alternate_names": [
+          "cooked boneless skinless chicken breast",
+          "skinless boneless chicken breast cooked",
+          "grilled chicken breast boneless skinless",
+          "cooked chicken breast no skin",
+          "boneless skinless cooked chicken"
+        ],
+        "source": [
+          {
+            "id": 331960,
+            "reference": "FDC ID",
+            "database": "USDA Foundational Foods",
+            "name": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, cooked, braised",
+            "url": "https://fdc.nal.usda.gov/food-details/331960/nutrients"
+          },
+          {
+            "id": "502554",
+            "reference": "Food ID",
+            "database": "Canadian Nutrient File",
+            "name": "Chicken, broiler, breast, skinless, boneless, meat, braised",
+            "url": "https://aliments-nutrition.canada.ca/cnf-fce/serving-portion?id=502554"
+          },
+          {
+            "id": "502555",
+            "reference": "Food ID",
+            "database": "Canadian Nutrient File",
+            "name": "Chicken, broiler, breast, skinless, boneless, meat, grilled",
+            "url": "https://aliments-nutrition.canada.ca/cnf-fce/serving-portion?id=502555"
+          },
+          {
+            "id": 171140,
+            "reference": "Food ID",
+            "database": "USDA Standard Reference, Legacy",
+            "name": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, cooked, braised",
+            "url": "https://fdc.nal.usda.gov/food-details/171140/nutrients"
+          },
+          {
+            "id": 171534,
+            "reference": "Food ID",
+            "database": "USDA Standard Reference, Legacy",
+            "name": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, cooked, grilled",
+            "url": "https://fdc.nal.usda.gov/food-details/171534/nutrients"
+          }
+        ],
+        "serving": {
+          "common": {
+            "unit": "oz",
+            "quantity": 3
+          },
+          "metric": {
+            "unit": "g",
+            "quantity": 85
+          }
+        },
+        "package_size": {},
+        "ingredient_analysis": {}
+      }
+    },
+    {
+      "test": "get_food_by_id_valid",
+      "passed": true,
+      "elapsed_s": 0.35,
+      "food_id": "fd_2dObzdqa6o2J",
+      "has_nutrition": false
+    },
+    {
+      "test": "get_food_by_id_invalid_rejected",
+      "passed": true,
+      "detail": "id 'lc_...' deve retornar None (allowlist de formato)"
+    },
+    {
+      "test": "allowlist_blocks_forbidden_tool",
+      "passed": true,
+      "detail": "Corretamente bloqueado: Tool 'execute_shell' não está na allowlist. Permitidas: ['barcode-lookup', 'browse-foods', 'get-food-by-id', 'search-food-by-name']"
+    },
+    {
+      "test": "audit_log_exists",
+      "passed": true,
+      "log_path": "C:\\Users\\victo\\OneDrive\\Documentos\\Faculdade\\NutriAgents\\NutriAgents\\logs\\mcp_calls.jsonl",
+      "n_entries": 479
+    }
+  ]
+}

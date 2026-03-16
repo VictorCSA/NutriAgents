@@ -1,6 +1,30 @@
 import sys
+import os
 import time
+import warnings
 from pathlib import Path
+
+# Silencia logs verbosos de bibliotecas externas
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+os.environ.setdefault("HF_HUB_VERBOSITY", "error")
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", message=".*unauthenticated.*")
+
+import logging
+for _lib in ("sentence_transformers", "transformers", "huggingface_hub",
+             "filelock", "torch", "tensorflow", "jax", "torchao"):
+    logging.getLogger(_lib).setLevel(logging.ERROR)
+
+# Patch para bug do torch.classes no Windows com Streamlit
+# https://github.com/pytorch/pytorch/issues/127462
+try:
+    import torch
+    torch.classes.__path__ = []
+except Exception:
+    pass
 
 import streamlit as st
 
@@ -79,13 +103,22 @@ if "pipeline_state" not in st.session_state:
 if "pending_query" not in st.session_state:
     st.session_state.pending_query = None
 
-PIPELINE_NODES = [
+PIPELINE_NODES_QA = [
     ("supervisor", "Supervisor"),
     ("retriever",  "Retriever"),
     ("answerer",   "Answerer"),
     ("self_check", "Self-Check"),
     ("safety",     "Safety"),
 ]
+
+PIPELINE_NODES_AUTO = [
+    ("supervisor",  "Supervisor"),
+    ("automation",  "Automation"),
+    ("mcp",         "MCP OpenNutrition"),
+    ("safety",      "Safety"),
+]
+
+PIPELINE_NODES = PIPELINE_NODES_QA  # default
 
 # Sidebar
 with st.sidebar:
@@ -96,9 +129,11 @@ with st.sidebar:
     st.markdown('<p class="sidebar-title">Pipeline</p>', unsafe_allow_html=True)
     pipeline_placeholder = st.empty()
 
-    def render_pipeline(active_node="", done_nodes=[], error_node=""):
+    def render_pipeline(active_node="", done_nodes=[], error_node="", nodes=None):
+        if nodes is None:
+            nodes = PIPELINE_NODES_QA
         html = '<div class="pipeline-container">'
-        for nid, nlabel in PIPELINE_NODES:
+        for nid, nlabel in nodes:
             if nid == error_node:
                 css, icon = "pipeline-node error", "✗"
             elif nid == active_node:
@@ -126,13 +161,21 @@ with st.sidebar:
         safety = state.get("safety_status", "—")
         bi  = {"qa":"badge-green","automation":"badge-orange","refuse":"badge-red"}.get(intent,"badge-gray")
         bs  = {"approved":"badge-green","approved_with_disclaimer":"badge-orange","blocked":"badge-red"}.get(safety,"badge-gray")
-        bsc = "badge-green" if isinstance(score, int) and score >= 3 else "badge-red"
-        meta_placeholder.markdown(
+        bsc = "badge-green" if isinstance(score, int) and score >= 3 else ("badge-gray" if score == "—" else "badge-red")
+        html = (
             f'<p style="font-size:0.81rem;margin:0.2rem 0;">Intent &nbsp;<span class="badge {bi}">{intent}</span></p>'
             f'<p style="font-size:0.81rem;margin:0.2rem 0;">Self-Check &nbsp;<span class="badge {bsc}">{score}/5</span></p>'
-            f'<p style="font-size:0.81rem;margin:0.2rem 0;">Safety &nbsp;<span class="badge {bs}">{safety}</span></p>',
-            unsafe_allow_html=True
+            f'<p style="font-size:0.81rem;margin:0.2rem 0;">Safety &nbsp;<span class="badge {bs}">{safety}</span></p>'
         )
+        inner_state = state.get("state", {})
+        restrictions = inner_state.get("restrictions", [])
+        mcp_foods = inner_state.get("mcp_foods", {})
+        if restrictions:
+            restr_str = ", ".join(r.replace("_", " ") for r in restrictions)
+            html += f'<p style="font-size:0.78rem;margin:0.3rem 0;color:#9a9;">Restrições: {restr_str}</p>'
+        if mcp_foods:
+            html += f'<p style="font-size:0.78rem;margin:0.2rem 0;color:#9a9;">🔌 MCP: {len(mcp_foods)} alimento(s)</p>'
+        meta_placeholder.markdown(html, unsafe_allow_html=True)
 
     render_meta(st.session_state.pipeline_state)
 
@@ -187,32 +230,40 @@ else:
                         if i < len(msg["chunks"]):
                             st.divider()
 
+            if msg.get("mcp_foods"):
+                with st.expander(f"🔌  Ver {len(msg['mcp_foods'])} alimento(s) consultado(s) via MCP OpenNutrition"):
+                    for food_name, summary in msg["mcp_foods"].items():
+                        st.markdown(summary)
+                        st.divider()
+
 # Processar query pendente (segundo rerun — mensagem do usuário já visível)
 if st.session_state.pending_query:
     query = st.session_state.pending_query
     st.session_state.pending_query = None
 
-    with st.spinner("Consultando documentos nutricionais..."):
-        done_nodes = []
-        for nid, _ in PIPELINE_NODES:
-            render_pipeline(active_node=nid, done_nodes=done_nodes)
-            time.sleep(0.1)
-            done_nodes.append(nid)
+    # Detecta rota para animação do pipeline
+    query_lower = query.lower()
+    is_auto = any(w in query_lower for w in ["gera", "cria", "monta", "cardápio", "plano", "dieta", "elabora"])
+    pipeline_nodes = PIPELINE_NODES_AUTO if is_auto else PIPELINE_NODES_QA
+    spinner_msg = "Gerando plano alimentar com MCP OpenNutrition..." if is_auto else "Consultando documentos nutricionais..."
 
+    with st.spinner(spinner_msg):
         try:
-            render_pipeline(active_node="supervisor", done_nodes=[])
+            render_pipeline(active_node="supervisor", done_nodes=[], nodes=pipeline_nodes)
             result = run(query)
+            intent = result.get("intent", "qa")
+            pipeline_nodes = PIPELINE_NODES_AUTO if intent == "automation" else PIPELINE_NODES_QA
             final_response = result.get("final_response", "Não foi possível gerar uma resposta.")
             chunks = result.get("state", {}).get("chunks", [])
-            render_pipeline(done_nodes=[n[0] for n in PIPELINE_NODES])
+            mcp_foods = result.get("state", {}).get("mcp_foods", {})
+            render_pipeline(done_nodes=[n[0] for n in pipeline_nodes], nodes=pipeline_nodes)
             st.session_state.pipeline_state = result
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": final_response,
-                "chunks": chunks,
-            })
+            msg_data = {"role": "assistant", "content": final_response, "chunks": chunks}
+            if mcp_foods:
+                msg_data["mcp_foods"] = mcp_foods
+            st.session_state.messages.append(msg_data)
         except Exception as e:
-            render_pipeline(error_node="supervisor")
+            render_pipeline(error_node="supervisor", nodes=pipeline_nodes)
             st.session_state.messages.append({
                 "role": "assistant",
                 "content": f"⚠️ Erro: `{e}`\n\nVerifique se o Ollama está rodando.",

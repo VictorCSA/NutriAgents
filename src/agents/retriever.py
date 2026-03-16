@@ -1,6 +1,26 @@
 import logging
+import os
 from pathlib import Path
 from typing import Any
+
+# Silencia logs verbosos do HuggingFace e transformers ANTES de importá-los
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+os.environ.setdefault("HF_HUB_VERBOSITY", "error")
+
+# Força uso do cache local — evita requisições de rede ao HuggingFace Hub
+# durante a busca (causa WinError 10060 em redes com restrição)
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", message=".*unauthenticated.*")
+
+# Silencia loggers verbosos de bibliotecas externas
+for _noisy in ("sentence_transformers", "transformers", "huggingface_hub",
+               "filelock", "torch", "tensorflow", "jax"):
+    logging.getLogger(_noisy).setLevel(logging.ERROR)
 
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings

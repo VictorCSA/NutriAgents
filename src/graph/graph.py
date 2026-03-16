@@ -1,370 +1,332 @@
+"""
+src/graph/graph.py
+------------------
+Grafo LangGraph — orquestra todos os agentes do NutriAgents.
+
+Nós:
+    supervisor   → classifica a intenção (qa / automation / refuse)
+    retriever    → busca chunks no FAISS
+    answerer     → gera resposta com citações (rota qa)
+    self_check   → valida suporte das afirmações (re-busca se falhar)
+    automation   → gera plano alimentar com RAG + MCP (rota automation)
+    safety       → adiciona disclaimer / bloqueia conteúdo perigoso
+
+Fluxo QA:
+    supervisor → retriever → answerer → self_check → safety → END
+
+Fluxo Automation:
+    supervisor → automation → safety → END
+
+Fluxo Refuse:
+    supervisor → END
+"""
+
 import logging
-import os
-import json
-from typing import Any, Literal
+import re
+from typing import Any, TypedDict
 
 from langgraph.graph import StateGraph, END
-from typing_extensions import TypedDict
 
 from agents.supervisor import classify
 from agents.retriever import retrieve
 from agents.answerer import answer
-from agents.self_check import self_check
+from agents.self_check import self_check as run_self_check
 from agents.safety import check as safety_check
-
-# Logging
+from agents.automation import generate_meal_plan
 
 logger = logging.getLogger(__name__)
 
-# Estado compartilhado do grafo
-class GraphState(TypedDict):
-    # Entrada
-    message: str                        # mensagem original do usuário
+
+# ── Estado do grafo ───────────────────────────────────────────────────────────
+
+class AgentState(TypedDict, total=False):
+    # Input
+    message: str
 
     # Supervisor
-    intent: str                         # "qa" | "automation" | "refuse"
-    intent_motivo: str                  # justificativa da classificação
+    intent: str
+    motivo: str
 
     # Retriever
-    chunks: list[dict]                  # chunks recuperados do vectorstore
-    retriever_status: str               # "ok" | "empty" | "error"
+    chunks: list
+    retriever_status: str
 
     # Answerer
-    draft: str                          # rascunho gerado pelo Answerer
-    references: str                     # seção de referências
-    answerer_status: str                # "ok" | "no_evidence" | "error"
+    draft: str
+    references: str
+    answerer_status: str
 
     # Self-Check
-    self_check_verdict: str             # "approved" | "retry" | "refused"
-    self_check_score: int               # 1-5
-    self_check_motivo: str              # justificativa do Self-Check
-    retry_count: int                    # número de re-buscas realizadas
+    self_check_score: int
+    self_check_motivo: str
+    self_check_verdict: str   # "approved" | "retry" | "refused"
+    retry_count: int
+
+    # Automation
+    restrictions: list
+    mcp_foods: dict
+    automation_status: str
 
     # Safety
-    safety_status: str                  # "approved" | "approved_with_disclaimer" | "blocked"
-    safety_reasons: list[str]           # gatilhos detectados
+    safe_response: str
+    safety_status: str
+    safety_reason: str
 
-    # Saída final
-    final_response: str                 # resposta entregue ao usuário
+    # Output final
+    final_response: str
 
 
-# Utilitário de log de estado
-def log_state(node_name: str, state: GraphState) -> None:
-    """Loga o estado completo após cada transição de nó."""
-    logger.info(f"{'═' * 60}")
-    logger.info(f"  NÓ CONCLUÍDO: {node_name.upper()}")
-    logger.info(f"{'═' * 60}")
+# ── Nós do grafo ──────────────────────────────────────────────────────────────
 
-    # Campos relevantes por nó
-    campos = {
-        "supervisor": ["message", "intent", "intent_motivo"],
-        "retriever": ["retriever_status", "retry_count",
-                      "_chunks_count"],
-        "answerer": ["answerer_status", "_draft_len"],
-        "self_check": ["self_check_verdict", "self_check_score",
-                       "self_check_motivo", "retry_count"],
-        "safety": ["safety_status", "safety_reasons",
-                   "_final_response_len"],
+def node_supervisor(state: AgentState) -> AgentState:
+    logger.info(">>> Nó: supervisor")
+    result = classify(state["message"])
+    return {
+        **state,
+        "intent":         result["intent"],
+        "motivo":         result["motivo"],
+        "final_response": result.get("response", ""),
     }
 
-    # Campos calculados
-    state["_chunks_count"] = len(state.get("chunks") or [])
-    state["_draft_len"] = len(state.get("draft") or "")
-    state["_final_response_len"] = len(state.get("final_response") or "")
 
-    for campo in campos.get(node_name, list(state.keys())):
-        if campo.startswith("_"):
-            valor = state.get(campo, "N/A")
-        else:
-            valor = state.get(campo, "N/A")
-            if isinstance(valor, str) and len(valor) > 120:
-                valor = valor[:120] + "..."
-            elif isinstance(valor, list) and len(valor) > 3:
-                valor = valor[:3] + [f"... +{len(valor)-3} itens"]
-        logger.info(f"  {campo:<28} = {valor}")
-
-    # Limpa campos temporários
-    for tmp in ["_chunks_count", "_draft_len", "_final_response_len"]:
-        state.pop(tmp, None)
-
-
-# Nós do grafo
-def node_supervisor(state: GraphState) -> GraphState:
-    """Classifica a intenção da mensagem do usuário."""
-    logger.info(f"{'─' * 60}")
-    logger.info("  → ENTRANDO: supervisor")
-
-    result = classify(state["message"])
-
-    state["intent"] = result["intent"]
-    state["intent_motivo"] = result["motivo"]
-
-    # Se for recusa, já define a resposta final
-    if result["intent"] == "refuse":
-        state["final_response"] = result["response"]
-
-    log_state("supervisor", state)
-    return state
-
-
-def node_retriever(state: GraphState) -> GraphState:
-    """Busca chunks relevantes no vectorstore."""
-    logger.info(f"{'─' * 60}")
-    logger.info("  → ENTRANDO: retriever")
-
+def node_retriever(state: AgentState) -> AgentState:
+    logger.info(">>> Nó: retriever")
     result = retrieve(state["message"])
-
-    state["chunks"] = result.get("chunks", [])
-    state["retriever_status"] = result.get("status", "error")
-
-    log_state("retriever", state)
-    return state
-
-
-def node_answerer(state: GraphState) -> GraphState:
-    """Gera o rascunho de resposta com citações."""
-    logger.info(f"{'─' * 60}")
-    logger.info("  → ENTRANDO: answerer")
-
-    result = answer(state["message"], state["chunks"])
-
-    state["draft"] = result.get("draft", "")
-    state["references"] = result.get("references", "")
-    state["answerer_status"] = result.get("status", "error")
-
-    log_state("answerer", state)
-    return state
+    return {
+        **state,
+        "chunks":           result["chunks"],
+        "retriever_status": result["status"],
+    }
 
 
-def node_self_check(state: GraphState) -> GraphState:
-    """Valida se o draft está suportado pelos chunks."""
-    logger.info(f"{'─' * 60}")
-    logger.info("  → ENTRANDO: self_check")
+def node_answerer(state: AgentState) -> AgentState:
+    logger.info(">>> Nó: answerer")
+    result = answer(state["message"], state.get("chunks", []))
+    return {
+        **state,
+        "draft":           result["draft"],
+        "references":      result["references"],
+        "answerer_status": result["status"],
+    }
 
-    result = self_check(
-        draft=state["draft"],
-        chunks=state["chunks"],
-        retry_count=state.get("retry_count", 0),
+
+def node_self_check(state: AgentState) -> AgentState:
+    logger.info(">>> Nó: self_check")
+
+    draft       = state.get("draft", "")
+    chunks      = state.get("chunks", [])
+    retry_count = state.get("retry_count", 0)
+
+    # Chama a interface real do self_check.py (retorna verdict/score/motivo/draft)
+    result = run_self_check(draft, chunks, retry_count)
+
+    verdict = result.get("verdict", "approved")
+    score   = result.get("score", -1)
+    motivo  = result.get("motivo", "")
+
+    logger.info(f"Self-check resultado: verdict={verdict} score={score}")
+
+    return {
+        **state,
+        "self_check_score":   score,
+        "self_check_motivo":  motivo,
+        "self_check_verdict": verdict,
+        "retry_count":        result.get("retry_count", retry_count),
+        # Se recusado, já atualiza o draft com a mensagem de recusa
+        "draft": result.get("draft", draft),
+    }
+
+
+def node_automation(state: AgentState) -> AgentState:
+    logger.info(">>> Nó: automation")
+    result = generate_meal_plan(state["message"])
+    return {
+        **state,
+        "draft":             result["draft"],
+        "chunks":            result.get("chunks", []),
+        "restrictions":      result.get("restrictions", []),
+        "mcp_foods":         result.get("mcp_foods", {}),
+        "automation_status": result["status"],
+    }
+
+
+def node_safety(state: AgentState) -> AgentState:
+    logger.info(">>> Nó: safety")
+
+    draft = state.get("draft") or state.get("final_response") or ""
+
+    DISCLAIMER = (
+        "\n\n---\n"
+        "> ⚠️ **Aviso importante:** As informações acima têm caráter "
+        "**exclusivamente informativo** e são baseadas em documentos públicos de saúde. "
+        "**Não substituem consulta com nutricionista, médico ou outro profissional de saúde.**"
     )
 
-    state["self_check_verdict"] = result["verdict"]
-    state["self_check_score"] = result["score"]
-    state["self_check_motivo"] = result["motivo"]
-    state["retry_count"] = result["retry_count"]
+    safe = None
+    status = "approved_with_disclaimer"
+    reason = ""
 
-    # Se recusado, define resposta final
-    if result["verdict"] == "refused":
-        state["final_response"] = result["draft"]
+    # Tenta usar o safety_check importado (aceita diferentes nomes de chave)
+    try:
+        result = safety_check(draft)
+        safe   = result.get("safe_response") or result.get("response")
+        status = result.get("safety_status") or result.get("status", "approved_with_disclaimer")
+        reason = result.get("safety_reason") or result.get("reason", "")
+    except Exception as e:
+        logger.warning(f"safety_check indisponível, usando fallback inline: {e}")
 
-    log_state("self_check", state)
-    return state
+    # Fallback inline se safety_check falhou ou retornou vazio
+    if not safe:
+        if not draft.strip():
+            safe, status, reason = "Não foi possível gerar uma resposta.", "blocked", "Draft vazio."
+        else:
+            safe   = draft + DISCLAIMER
+            status = "approved_with_disclaimer"
+            reason = "Fallback inline com disclaimer."
+
+    logger.info(f"Safety: status={status}")
+    return {
+        **state,
+        "safe_response":  safe,
+        "safety_status":  status,
+        "safety_reason":  reason,
+        "final_response": safe,
+    }
 
 
-def node_safety(state: GraphState) -> GraphState:
-    """Aplica política de segurança e adiciona disclaimers."""
-    logger.info(f"{'─' * 60}")
-    logger.info("  → ENTRANDO: safety")
-
-    result = safety_check(state["draft"])
-
-    state["safety_status"] = result["status"]
-    state["safety_reasons"] = result["reasons"]
-    state["final_response"] = result["response"]
-
-    log_state("safety", state)
-    return state
-
-
-# Arestas condicionais
-def route_supervisor(state: GraphState) -> Literal["retriever", "__end__"]:
-    """
-    Após o supervisor:
-        qa         → retriever
-        refuse     → END (resposta já definida)
-        automation → END temporário (rota não implementada ainda)
-    """
+def route_after_supervisor(state: AgentState) -> str:
     intent = state.get("intent", "refuse")
-
+    logger.info(f"Router após supervisor: intent='{intent}'")
     if intent == "qa":
-        logger.info("  ↳ Rota: supervisor → retriever")
         return "retriever"
-
     if intent == "automation":
-        logger.info("  ↳ Rota: supervisor → END (automation não implementado)")
-        state["final_response"] = (
-            "A geração de planos alimentares ainda está sendo implementada. "
-            "Por enquanto, posso responder perguntas sobre nutrição e restrições alimentares."
-        )
-        return "__end__"
-
-    logger.info("  ↳ Rota: supervisor → END (refuse)")
-    return "__end__"
+        return "automation"
+    return END
 
 
-def route_self_check(state: GraphState) -> Literal["safety", "retriever", "__end__"]:
-    """
-    Após o self_check:
-        approved → safety
-        retry    → retriever (re-busca, incrementa retry_count)
-        refused  → END (resposta de recusa já definida)
-    """
-    verdict = state.get("self_check_verdict", "refused")
+def route_after_self_check(state: AgentState) -> str:
+    verdict = state.get("self_check_verdict", "approved")
+    retry   = state.get("retry_count", 0)
 
-    if verdict == "approved":
-        logger.info("  ↳ Rota: self_check → safety")
-        return "safety"
-
-    if verdict == "retry":
-        state["retry_count"] = state.get("retry_count", 0) + 1
-        logger.info(
-            f"  ↳ Rota: self_check → retriever "
-            f"(retry #{state['retry_count']})"
-        )
+    if verdict == "retry" and retry <= 1:
+        # Incrementa retry_count para evitar loop infinito
+        logger.info("Self-check → retry no retriever")
         return "retriever"
 
-    logger.info("  ↳ Rota: self_check → END (refused)")
-    return "__end__"
+    # "approved" ou "refused" (draft já substituído pela mensagem de recusa)
+    return "safety"
 
 
-# Estado inicial padrão
-def initial_state(message: str) -> GraphState:
-    """Cria o estado inicial com todos os campos em seus valores padrão."""
-    return GraphState(
-        message=message,
-        intent="",
-        intent_motivo="",
-        chunks=[],
-        retriever_status="",
-        draft="",
-        references="",
-        answerer_status="",
-        self_check_verdict="",
-        self_check_score=0,
-        self_check_motivo="",
-        retry_count=0,
-        safety_status="",
-        safety_reasons=[],
-        final_response="",
-    )
+# ── Construção do grafo ───────────────────────────────────────────────────────
+
+def build_graph():
+    g = StateGraph(AgentState)
+
+    g.add_node("supervisor",  node_supervisor)
+    g.add_node("retriever",   node_retriever)
+    g.add_node("answerer",    node_answerer)
+    g.add_node("self_check",  node_self_check)
+    g.add_node("automation",  node_automation)
+    g.add_node("safety",      node_safety)
+
+    g.set_entry_point("supervisor")
+
+    g.add_conditional_edges("supervisor", route_after_supervisor, {
+        "retriever":  "retriever",
+        "automation": "automation",
+        END:          END,
+    })
+
+    g.add_edge("retriever",  "answerer")
+    g.add_edge("answerer",   "self_check")
+
+    g.add_conditional_edges("self_check", route_after_self_check, {
+        "safety":    "safety",
+        "retriever": "retriever",
+    })
+
+    g.add_edge("automation", "safety")
+    g.add_edge("safety",     END)
+
+    return g.compile()
 
 
-# Construção do grafo
-def build_graph() -> StateGraph:
-    """Constrói e compila o grafo LangGraph."""
-    graph = StateGraph(GraphState)
-
-    # Registra os nós
-    graph.add_node("supervisor", node_supervisor)
-    graph.add_node("retriever", node_retriever)
-    graph.add_node("answerer", node_answerer)
-    graph.add_node("self_check", node_self_check)
-    graph.add_node("safety", node_safety)
-
-    # Ponto de entrada
-    graph.set_entry_point("supervisor")
-
-    # Arestas fixas
-    graph.add_edge("retriever", "answerer")
-    graph.add_edge("answerer", "self_check")
-    graph.add_edge("safety", END)
-
-    # Arestas condicionais
-    graph.add_conditional_edges(
-        "supervisor",
-        route_supervisor,
-        {
-            "retriever": "retriever",
-            "__end__": END,
-        },
-    )
-    graph.add_conditional_edges(
-        "self_check",
-        route_self_check,
-        {
-            "safety": "safety",
-            "retriever": "retriever",
-            "__end__": END,
-        },
-    )
-
-    return graph.compile()
-
-
-# Interface pública
 _graph = None
 
-
 def get_graph():
-    """Retorna o grafo compilado (singleton)."""
     global _graph
     if _graph is None:
-        logger.info("Compilando grafo LangGraph...")
         _graph = build_graph()
-        logger.info("Grafo compilado.")
     return _graph
 
 
+# ── Ponto de entrada público ──────────────────────────────────────────────────
+
 def run(message: str) -> dict[str, Any]:
     """
-    Ponto de entrada público do grafo.
-
-    Recebe a mensagem do usuário e retorna o estado final com a resposta.
+    Executa o pipeline completo para uma mensagem do usuário.
 
     Retorna:
     {
-        "final_response": str,   # resposta ao usuário
-        "intent":         str,   # intenção classificada
-        "safety_status":  str,   # status do safety
-        "self_check_score": int, # score do self-check
-        "state":          dict,  # estado completo (para debug)
+        "final_response"  : str,
+        "intent"          : str,
+        "self_check_score": int | None,
+        "safety_status"   : str | None,
+        "state"           : dict,
     }
     """
+    logger.info(f"run() → message='{message[:80]}'")
+
     graph = get_graph()
-    state = initial_state(message)
+    initial_state: AgentState = {
+        "message":     message,
+        "retry_count": 0,
+    }
 
-    logger.info(f"\n{'█' * 60}")
-    logger.info(f"  NOVA EXECUÇÃO DO GRAFO")
-    logger.info(f"  Mensagem: '{message[:80]}'")
-    logger.info(f"{'█' * 60}")
-
-    final_state = graph.invoke(state)
-
-    logger.info(f"\n{'█' * 60}")
-    logger.info(f"  EXECUÇÃO CONCLUÍDA")
-    logger.info(f"  Intent:        {final_state.get('intent')}")
-    logger.info(f"  Self-Check:    {final_state.get('self_check_verdict')} "
-                f"(score={final_state.get('self_check_score')})")
-    logger.info(f"  Safety:        {final_state.get('safety_status')}")
-    logger.info(f"{'█' * 60}\n")
+    try:
+        final_state = graph.invoke(initial_state)
+    except Exception as e:
+        logger.error(f"Erro no grafo LangGraph: {e}")
+        return {
+            "final_response": (
+                "⚠️ Ocorreu um erro interno. Verifique se o Ollama está rodando "
+                f"e tente novamente.\n\nDetalhe: `{e}`"
+            ),
+            "intent":           "error",
+            "self_check_score": None,
+            "safety_status":    None,
+            "state":            {},
+        }
 
     return {
-        "final_response": final_state.get("final_response", ""),
-        "intent": final_state.get("intent", ""),
-        "safety_status": final_state.get("safety_status", ""),
-        "self_check_score": final_state.get("self_check_score", 0),
-        "state": final_state,
+        "final_response":   final_state.get("final_response", "Sem resposta."),
+        "intent":           final_state.get("intent", "—"),
+        "self_check_score": final_state.get("self_check_score"),
+        "safety_status":    final_state.get("safety_status"),
+        "state":            dict(final_state),
     }
 
 
-# Execução direta — teste end-to-end
+# ── Teste direto ──────────────────────────────────────────────────────────────
+
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
     )
 
-    casos = [
+    tests = [
         "Quais alimentos um diabético deve evitar?",
-        "Me gera um plano alimentar semanal para celíaco com hipertensão",
+        "Gera um plano alimentar semanal para celíaco com hipertensão",
         "Qual é a capital da França?",
     ]
 
-    for mensagem in casos:
-        print(f"\n{'=' * 60}")
-        print(f"INPUT: {mensagem}")
+    for msg in tests:
+        print(f"\n{'='*60}")
+        print(f"Input: {msg}")
         print("=" * 60)
-        resultado = run(mensagem)
-        print(f"INTENT:        {resultado['intent']}")
-        print(f"SAFETY:        {resultado['safety_status']}")
-        print(f"SELF-CHECK:    score={resultado['self_check_score']}")
-        print(f"\nRESPOSTA:\n{resultado['final_response'][:400]}")
+        result = run(msg)
+        print(f"Intent:      {result['intent']}")
+        print(f"Self-check:  {result['self_check_score']}")
+        print(f"Safety:      {result['safety_status']}")
+        print(f"\nResposta:\n{result['final_response'][:400]}...")
