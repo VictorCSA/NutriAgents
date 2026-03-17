@@ -1,5 +1,8 @@
 # 🥗 NutriAgents
 
+
+- [Slides](https://docs.google.com/presentation/d/1HGShT7fhpTPOIVgXc8tK2Kv0O6aEcqK-L0RqUWIqdpQ)
+- [Video Demo](https://youtu.be/dncohV7jnac)
 > Sistema multiagente de assistência nutricional para pessoas com restrições alimentares, baseado em documentos públicos brasileiros de saúde.
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue)](https://python.org)
