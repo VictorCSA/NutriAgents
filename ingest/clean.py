@@ -243,6 +243,9 @@ def clean_all() -> None:
     logger.info("Limpeza concluída com sucesso.")
 
 
+    return summary
+
+
 def main() -> None:
     logger.info("=" * 60)
     logger.info("NutriAgents — clean.py iniciado")

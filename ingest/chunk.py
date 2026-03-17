@@ -262,7 +262,9 @@ def chunk_all() -> None:
     logger.info(f"  Saída: {OUTPUT_FILE}")
     logger.info("=" * 60)
     logger.info("Chunking concluído com sucesso.")
+    return {sid: count for sid, count in by_source.items()}
 
+    
 
 def main() -> None:
     logger.info("=" * 60)

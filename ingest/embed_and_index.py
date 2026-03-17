@@ -217,6 +217,20 @@ def log_index_summary(documents: list[Document]) -> None:
         logger.info(f"  {source_id}: {count} chunk(s)")
 
 
+def embed_and_index_pipeline() -> dict:
+    """Chamado pelo pipeline.py — executa todas as etapas e retorna métricas."""
+    documents = load_chunks()
+    log_index_summary(documents)
+    embeddings = load_embedding_model()
+    vectorstore = build_faiss_index(documents, embeddings)
+    save_index(vectorstore)
+    validate_index(embeddings)
+    return {
+        "total_vectors": len(documents),
+        "index_path": str(VECTORSTORE_DIR),
+    }
+
+
 # Ponto de entrada
 def main() -> None:
     logger.info("=" * 60)

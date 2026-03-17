@@ -6,6 +6,12 @@ import time
 import traceback
 from dataclasses import dataclass, field
 from pathlib import Path
+import os
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+os.environ.setdefault("HF_HUB_VERBOSITY", "error")
 
 
 # Paths
@@ -74,12 +80,12 @@ def run_clean() -> StepResult:
     Etapa 2 — Limpeza do texto extraído.
     Documentos sem saída útil geram alerta; pipeline continua.
     """
-    from clean import clean_all_pipeline
+    from clean import clean_all
 
     start = time.time()
     warnings = []
 
-    summary = clean_all_pipeline()  # retorna dict {source_id: metrics}
+    summary = clean_all()  # retorna dict {source_id: metrics}
 
     for source_id, m in summary.items():
         if m["pages_processed"] == 0:
@@ -101,12 +107,12 @@ def run_chunk() -> StepResult:
     """
     Etapa 3 — Chunking e enriquecimento de metadados.
     """
-    from chunk import chunk_all_pipeline
+    from chunk import chunk_all
 
     start = time.time()
     warnings = []
 
-    summary = chunk_all_pipeline()  # retorna {source_id: n_chunks}
+    summary = chunk_all()  # retorna {source_id: n_chunks}
 
     for source_id, n in summary.items():
         if n == 0:
